@@ -67,13 +67,16 @@ table[0].find_all('tr')[-1]
 
 def bs_to_list(bs):
     text_list = []
-    for item in bs:
-        text_list.append(item.text)
-    return text_list
+    if len (bs) > 0 :
+        for item in bs:
+            text_list.append(item.text)
+        return text_list
+    else:
+        return None
 
 #%%
-df = pd.DataFrame()
-for year in range (1950,2019,1):
+#df = pd.DataFrame()
+#for year in range (1950,1953,1):
     print(year, 'starting now...')
     # make a dataframe to hold all the data
 
@@ -120,12 +123,71 @@ for year in range (1950,2019,1):
     print(year, 'complete!')
     time.sleep(3)
 
+#%%
+df = pd.DataFrame()
+for year in range (1950,2019,1):
+    print(year, 'starting now...')
+    # make a dataframe to hold all the data
+
+    # set the website we scarpe from using the year variable
+    website = 'https://www.sports-reference.com/cfb/years/{}-schedule.html'.format(year)
+    # get the response, parse it with bs4, and find the table tags
+    response = requests.get(website)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    table = soup.find_all('table')
+    
+    # for all the desired data, find the associate data-stat tags
+    row =  table[0].find_all('th', {'scope':'row'})
+    week_number = table[0].find_all('td', {'data-stat':'week_number'})
+    date_game = table[0].find_all('td', {'data-stat':'date_game'})
+    time_game = table[0].find_all('td', {'data-stat':'time_game'})
+    day_game =  table[0].find_all('td', {'data-stat':'day_name'})
+    winner = table[0].find_all('td', {'data-stat':'winner_school_name'})
+    winner_pts  = table[0].find_all('td', {'data-stat':'winner_points'})
+    game_location = table[0].find_all('td', {'data-stat':'game_location'})
+    loser = table[0].find_all('td', {'data-stat':'loser_school_name'})
+    loser_pts = table[0].find_all('td', {'data-stat':'loser_points'})
+    notes = table[0].find_all('td', {'data-stat':'notes'})
+    
+    # make an empty temp df and add each row as a columns.
+    # this was neccessary to assign "None" to any fields that did not
+    # exist in earlier years
+    df_temp = pd.DataFrame()
+    
+    # iterate through the bs4
+    df_temp['row'] = bs_to_list(row)
+    df_temp['week_number'] = bs_to_list(week_number)
+    df_temp['winner'] = bs_to_list(winner)
+    df_temp['winner_pts'] = bs_to_list(winner_pts)
+    df_temp['loser'] = bs_to_list(loser)
+    df_temp['loser_pts'] = bs_to_list(loser_pts)
+    df_temp['game_date'] = bs_to_list(date_game)
+    df_temp['game_time'] = bs_to_list(time_game)
+    df_temp['game_day'] = bs_to_list(day_game)
+    df_temp['game_loc'] = bs_to_list(game_location)
+    df_temp['notes'] = bs_to_list(notes)
+    
+    df_temp['year'] = year
+    df = df.append(df_temp)
+    print(year, 'complete!')
+    time.sleep(1)
+
+
 
 #%%
 df.to_csv('scraped_results_df.csv')
 #%%
-df.describe()
+df_temp = pd.DataFrame(zip(row_list, week_number_list, date_list, time_list,
+                  day_list, winner_list, winner_pts_list, game_loc_list,
+                  loser_list, loser_pts_list, notes_list), columns = 
+                ['row','week','date_game','time_game','day_game','winner',
+                 'winner_pts','game_loc','loser','loser_pts','notes'])
+df_temp['year'] = year
+df = df.append(df_temp)
+#%%
+time_list
 
-
-
+test = pd.DataFrame()
+test['row'] = row_list
+test['time_game'] = None
 
