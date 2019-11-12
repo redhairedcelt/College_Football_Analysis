@@ -289,13 +289,13 @@ records.head()
 
 ```python
 records = pd.read_csv('scraped_results_df.csv')
-# 'game_loc' indicated where the game was played at. Since the winner is listed first in 
-# the original data, the '@' indicates the game was played at the loser's home.  Therefore, 
+# 'game_loc' indicated where the game was played at. Since the winner is listed first in
+# the original data, the '@' indicates the game was played at the loser's home.  Therefore,
 # we can create a new column called 'Winner_home' if the '@' sign is not present.
 records['winner_home'] = records['game_loc']!='@'
 
-# The rank is included in the winner and losers name within parenthesis.  The below regex will identify 
-# numerical digits within the parenthesis and extract them to a new column as 'floats'.  We'll also 
+# The rank is included in the winner and losers name within parenthesis.  The below regex will identify
+# numerical digits within the parenthesis and extract them to a new column as 'floats'.  We'll also
 # remove the rank in parenthesis from the original winner column.  We'll do this for winners and losers.
 records['winner_rank'] = records['winner'].str.extract('\(([0-9]+)\)', expand=True).astype('float')
 records['winner_name'] = records['winner'].str.replace('\(([0-9]+)\)', '').str.replace('\xa0', '')
@@ -305,7 +305,7 @@ records['loser_name'] = records['loser'].str.replace('\(([0-9]+)\)', '').str.rep
 # Calculate a rank_diff socre.  The more negative this is, the more of an upset it is.
 records['rank_diff'] = records['loser_rank'] - records['winner_rank']
 
-# Add a pts_diff between the two pts as we can use margin of victory to see how close a 
+# Add a pts_diff between the two pts as we can use margin of victory to see how close a
 # game is.
 records['pts_diff'] = records['winner_pts'] - records['loser_pts']
 
@@ -377,7 +377,7 @@ records.groupby('year').mean().plot(y=['winner_pts','loser_pts','pts_diff'])
 ![png](output_14_1.png)
 
 
-If we want to look at how "accurate" the polls have been when ranked teams play each other, we could look at the rank difference between the two teams.  We would expect a positive score as that means the higher ranked team defeated the lower ranked team.  The plot below shows the variability of the average rank difference score over the last 70 years. 
+If we want to look at how "accurate" the polls have been when ranked teams play each other, we could look at the rank difference between the two teams.  We would expect a positive score as that means the higher ranked team defeated the lower ranked team.  The plot below shows the variability of the average rank difference score over the last 70 years.
 
 
 ```python
@@ -1917,7 +1917,7 @@ However, these plots are still lacking in that there is a lot of information tha
 
 ```python
 x=ratios_sum.index.to_list()
- 
+
 fig = go.Figure()
 fig.add_trace(go.Scatter(
     x=x, y=ratios_sum['both_unranked'],
@@ -1959,7 +1959,7 @@ fig.add_trace(go.Scatter(
     line=dict(width=0.5, color=colors[4]),
     stackgroup='one' # define stack group
 ))
- 
+
 fig.update_layout(title="Stacked Area Chart of Types of Games, Total Games, 1950 to 2018")
 fig.show()
 ```
@@ -2017,8 +2017,8 @@ var x = new MutationObserver(function (mutations, observer) {{
 // Listen for the removal of the full notebook cells
 var notebookContainer = gd.closest('#notebook-container');
 if (notebookContainer) {{
-    x.observe(notebookContainer, {childList: true});
-}}
+    x.observe(notebookContainer, {childList: true});}
+}
 
 // Listen for the clearing of the current output cell
 var outputEl = gd.closest('.output');
@@ -2154,7 +2154,7 @@ ratios_years['accuracy'] = ratios_years['correct'] - ratios_years['incorrect']
 ```python
 acc_df = ratios_years[['correct','incorrect','accuracy']]
 
-acc_df.plot(figsize=(12,6), color=('g','r','black'), style=['--','--','-'], linewidth=3, 
+acc_df.plot(figsize=(12,6), color=('g','r','black'), style=['--','--','-'], linewidth=3,
             title="Correct, Incorrect, and Overall Accuracy of AP Poll in Games between Ranked Teams, 1950 to 2018")
 ```
 
@@ -2176,7 +2176,7 @@ Looks like by far the worst years for accuracy were in the 60s.  College footbal
 labels = ['Both Unranked', 'Ranked Beats Unranked', 'Higher Beats Lower Ranked',
        'Lower Bears Higher Ranked', 'Unranked Beats Ranked']
 
-fig = go.Figure(data=[go.Pie(labels=labels, values=ratios.sum().to_list(), hole=.2, 
+fig = go.Figure(data=[go.Pie(labels=labels, values=ratios.sum().to_list(), hole=.2,
                              direction = 'clockwise', sort=False, )])
 fig.update_traces(hoverinfo='label+value', textinfo='percent', textfont_size=16,
                   marker=dict(colors=colors, line=dict(color='#000000', width=2)))
@@ -2236,7 +2236,7 @@ year = 2018
 labels = ['Both Unranked', 'Ranked Beats Unranked', 'Higher Beats Lower Ranked',
        'Lower Bears Higher Ranked', 'Unranked Beats Ranked']
 
-fig = go.Figure(data=[go.Pie(labels=labels, values=ratios.groupby('year').mean().loc[year].to_list(), hole=.2, 
+fig = go.Figure(data=[go.Pie(labels=labels, values=ratios.groupby('year').mean().loc[year].to_list(), hole=.2,
                              direction = 'clockwise', sort=False, )])
 fig.update_traces(hoverinfo='label+value', textinfo='percent', textfont_size=16,
                   marker=dict(colors=colors, line=dict(color='#000000', width=2)))
@@ -2288,4 +2288,3 @@ if (outputEl) {{
                 });
             </script>
         </div>
-
