@@ -13187,6 +13187,14 @@ div#notebook {
 </div>
 
 </div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>All of the data we are interested in is stored with a "table" tag.  We can assign that to a variable and focus our scraping there.</p>
+
+</div>
+</div>
+</div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">In&nbsp;[11]:</div>
@@ -13299,11 +13307,10 @@ Notes
     <span class="n">notes</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;td&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;data-stat&#39;</span><span class="p">:</span><span class="s1">&#39;notes&#39;</span><span class="p">})</span>
     
     <span class="c1"># make an empty temp df and add each row as a columns.</span>
-    <span class="c1"># this was neccessary to assign &quot;None&quot; to any fields that did not</span>
-    <span class="c1"># exist in earlier years</span>
     <span class="n">df_temp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
     
-    <span class="c1"># iterate through the bs4</span>
+    <span class="c1"># iterate through the soup.  The bs_to_list function is neccessary to assign </span>
+    <span class="c1"># &quot;None&quot; to any fields that did not exist in earlier years.</span>
     <span class="n">df_temp</span><span class="p">[</span><span class="s1">&#39;row&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bs_to_list</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
     <span class="n">df_temp</span><span class="p">[</span><span class="s1">&#39;week_number&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bs_to_list</span><span class="p">(</span><span class="n">week_number</span><span class="p">)</span>
     <span class="n">df_temp</span><span class="p">[</span><span class="s1">&#39;winner&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bs_to_list</span><span class="p">(</span><span class="n">winner</span><span class="p">)</span>
@@ -13321,8 +13328,8 @@ Notes
     <span class="c1"># append the newly generated df_temp to the full df</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_temp</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="s1">&#39;complete!&#39;</span><span class="p">)</span>
-    <span class="c1"># stop the scraper for a second to prevent overwhelming the website.</span>
-    <span class="c1"># the terms of use for the site requested scraping no faster than a human </span>
+    <span class="c1"># stop the scraper for a short period to prevent overwhelming the website.</span>
+    <span class="c1"># The terms of use for the site requested scraping no faster than a human </span>
     <span class="c1"># could access the data and I figured this was a good time interval.</span>
     <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 </pre></div>
