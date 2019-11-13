@@ -1,4 +1,4 @@
-# Analysis of College Football Games, 1950 to 2019
+# Analysis of College Football Games, 1950 to 2018
 
 Welcome!  This is my analysis of all college football games played from 1950 to 2018, with particular focus on how accurate the Associated Press polls are at predicting the "best" team.  I also explore some basic community detection approaches to see if I can identify what conference a team plays in solely based on what teams they play.
 
