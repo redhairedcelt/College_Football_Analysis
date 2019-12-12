@@ -1,0 +1,96 @@
+---
+title: "College Football Analysis"
+author: <span style="color:green">Team Why Axis?</span>
+date: <span style="color:green">12/10/2019</span>
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include = FALSE)
+#knitr::opts_chunk$set(fig.width=10, fig.height=6) 
+```
+
+```{r}
+loadPkg = function(x) { if (!require(x,character.only=T, quietly =T)) { install.packages(x,dep=T,repos="http://cran.us.r-project.org"); if(!require(x,character.only=T)) stop("Package not found") } }
+loadPkg('lubridate')    # used from time conversions
+library(lubridate)
+loadPkg('dplyr')        # varios data transfers
+library(dplyr)
+loadPkg('ggplot2')      # plotting and mapping
+library(ggplot2)
+loadPkg("modelr")       # building linear models
+library(modelr)
+loadPkg("faraway")      # for calculating VIF
+library(faraway)
+loadPkg('caret')        # used for creating different models and confusion matrices
+library(caret)
+loadPkg('class')        #for knn
+library(class)
+loadPkg('gmodels')      #for cross table
+library(gmodels)
+loadPkg('glmnet')       # for Lasso and Ridge
+library(glmnet)
+loadPkg('ggcorrplot')   # for Correlation plot
+library(ggcorrplot)
+loadPkg("corrplot")
+library(corrplot)
+
+loadPkg("leaps")
+loadPkg("ISLR")
+
+```
+
+```{r}
+stats <- read.csv('all_stats.csv')
+colnames(stats)
+#stats$rank_final <- as.factor(stats$rank_final)
+stats_clean <- stats %>% select(-school_name, -year, -Unnamed..0, -conf_abbr, -losses, -losses_conf, -notes, -rank_min, -rank_pre, -sos, -srs, -win_loss_pct, -win_loss_pct_conf, -wins, -wins_conf)
+
+stats_off <- stats %>% select(first_down_pass, first_down_rush, first_down_penalty, pass_att, pass_cmp, pass_cmp_pct, pass_int, pass_td, pass_yds, penalty, penalty_yds, points, rush_att, rush_td, rush_yds, rush_yds_per_att, tot_plays, tot_yds, tot_yds_per_play, turnovers, rank_final)
+
+stats_off_reduced <- stats %>% select(first_down_pass, first_down_rush, first_down_penalty, pass_att, pass_cmp, pass_cmp_pct, pass_int, pass_td, pass_yds, penalty, penalty_yds, points, rush_att, rush_td, rush_yds, rush_yds_per_att, turnovers, rank_final)
+
+stats_key <- stats %>% select(pass_att, pass_cmp, pass_int, pass_td, pass_yds, rush_att, rush_td, rush_yds, rush_yds_per_att, turnovers, opp_pass_att, opp_pass_cmp, opp_pass_int, opp_pass_td, opp_pass_yds, opp_rush_att, opp_rush_td, opp_rush_yds, opp_rush_yds_per_att, opp_turnovers, rank_final,)
+
+```
+
+```{r}
+corstats <- cor(stats_key %>% select(-rank_final))
+corrplot(corstats, method = "square")
+```
+
+
+```{r}
+
+#This is essentially best fit 
+reg.best <- regsubsets(rank_final~. , data = stats_key, nvmax = 14, nbest = 1, method = "forward")  # leaps, regsubsets: Model selection by exhaustive search, forward or backward stepwise, or sequential replacement
+#The plot will show the Adjust R^2 when using the variables across the bottom
+plot(reg.best, scale = "adjr2", main = "Adjusted R^2")
+plot(reg.best, scale = "r2", main = "R^2")
+# In the "leaps" package, we can use scale=c("bic","Cp","adjr2","r2")
+plot(reg.best, scale = "bic", main = "BIC")
+plot(reg.best, scale = "Cp", main = "Cp")
+# summary(reg.best)
+```
+
+```{r}
+
+fit_lin <- lm(rank_final~. , data = stats_key)
+fit_lin.pred <- add_predictions(stats_key, fit_lin)
+fit_lin
+loadPkg("faraway")
+summary(fit_lin)
+#vif(fit_lin)
+```
+
+```{r}
+ggplot(fit_lin.pred,aes(rank_final, pred))+geom_point(aes(rank_final, pred))+geom_line(aes(pred), colour="red", size=1)
+```
