@@ -24,6 +24,8 @@ loadPkg('lubridate')    # used from time conversions
 library(lubridate)
 loadPkg('dplyr')        # varios data transfers
 library(dplyr)
+loadPkg('tidyr')        # varios data transfers
+library(tidyr)
 loadPkg('ggplot2')      # plotting and mapping
 library(ggplot2)
 loadPkg("modelr")       # building linear models
@@ -46,51 +48,169 @@ library(corrplot)
 loadPkg("leaps")
 loadPkg("ISLR")
 
+loadPkg("FNN")
+loadPkg("gmodels")
+
+```
+
+```{r Segemnt Datasets}
+df <- read.csv('all_stats.csv')
+
+# what is the Y-value, the target you are trying to predict?
+df$Y <- df$rank_final
+colnames(df)
 ```
 
 ```{r}
-stats <- read.csv('all_stats.csv')
-colnames(stats)
+# drop any columns, make any changes to dtypes
+#df <- df %>% drop_na
+df <- df %>% drop_na(Y)
 #stats$rank_final <- as.factor(stats$rank_final)
-stats_clean <- stats %>% select(-school_name, -year, -Unnamed..0, -conf_abbr, -losses, -losses_conf, -notes, -rank_min, -rank_pre, -sos, -srs, -win_loss_pct, -win_loss_pct_conf, -wins, -wins_conf)
-
-stats_off <- stats %>% select(first_down_pass, first_down_rush, first_down_penalty, pass_att, pass_cmp, pass_cmp_pct, pass_int, pass_td, pass_yds, penalty, penalty_yds, points, rush_att, rush_td, rush_yds, rush_yds_per_att, tot_plays, tot_yds, tot_yds_per_play, turnovers, rank_final)
-
-stats_off_reduced <- stats %>% select(first_down_pass, first_down_rush, first_down_penalty, pass_att, pass_cmp, pass_cmp_pct, pass_int, pass_td, pass_yds, penalty, penalty_yds, points, rush_att, rush_td, rush_yds, rush_yds_per_att, turnovers, rank_final)
-
-stats_key <- stats %>% select(pass_att, pass_cmp, pass_int, pass_td, pass_yds, rush_att, rush_td, rush_yds, rush_yds_per_att, turnovers, opp_pass_att, opp_pass_cmp, opp_pass_int, opp_pass_td, opp_pass_yds, opp_rush_att, opp_rush_td, opp_rush_yds, opp_rush_yds_per_att, opp_turnovers, rank_final,)
-
 ```
 
 ```{r}
-corstats <- cor(stats_key %>% select(-rank_final))
-corrplot(corstats, method = "square")
+# do any subsetting
+#stats_clean <- df %>% select(-school_name, -year, -Unnamed..0, -conf_abbr, -losses, -losses_conf, -notes, -rank_min, -rank_pre, -sos, -srs, -win_loss_pct, -win_loss_pct_conf, -wins, -wins_conf)
+
+#stats_off <- df %>% select(first_down_pass, first_down_rush, first_down_penalty, pass_att, pass_cmp, pass_cmp_pct, pass_int, pass_td, pass_yds, penalty, penalty_yds, points, rush_att, rush_td, rush_yds, rush_yds_per_att, tot_plays, tot_yds, tot_yds_per_play, turnovers, rank_final)
+
+#stats_off_reduced <- df %>% select(first_down_pass, first_down_rush, first_down_penalty, pass_att, pass_cmp, pass_cmp_pct, pass_int, pass_td, pass_yds, penalty, penalty_yds, points, rush_att, rush_td, rush_yds, rush_yds_per_att, turnovers, rank_final)
+
+stats_key <- df %>% select(pass_att, pass_cmp, pass_int, pass_td, pass_yds, rush_att, rush_td, rush_yds, rush_yds_per_att, turnovers, opp_pass_att, opp_pass_cmp, opp_pass_int, opp_pass_td, opp_pass_yds, opp_rush_att, opp_rush_td, opp_rush_yds, opp_rush_yds_per_att, opp_turnovers, Y)
+
+#stats_key <- stats %>% select(pass_att, pass_td, pass_yds, rush_att, rush_td, rush_yds, rush_yds_per_att,  opp_pass_att, opp_pass_td, opp_pass_yds, opp_rush_att, opp_rush_td, opp_rush_yds, opp_rush_yds_per_att, rank_final)
+
+df <- na.omit(stats_key)
+str(df)
 ```
 
 
-```{r}
 
-#This is essentially best fit 
-reg.best <- regsubsets(rank_final~. , data = stats_key, nvmax = 14, nbest = 1, method = "forward")  # leaps, regsubsets: Model selection by exhaustive search, forward or backward stepwise, or sequential replacement
+```{r test/train}
+#set.seed(10)
+
+loadPkg("caTools")
+# use caTools to create a random subset of observations for test and train.
+sample <- sample.split(df$Y, SplitRatio = .7)
+train_full = subset(df, sample == TRUE)
+test_full = subset(df, sample == FALSE)
+
+# remove the Y column from our train data
+y_train <-train_full %>% select(Y)  %>% unlist() 
+x_train <- train_full %>% select(-Y)
+
+# remove the Y column from our test data
+y_test <-test_full %>% select(Y)  %>% unlist() 
+x_test <- test_full %>% select(-Y)
+
+```
+
+```{r scale data}
+x_train_scaled <- scale(x_train)
+x_test_scaled <- scale(x_test)
+y_test_scaled <- scale(y_test)
+y_train_scaled <- scale(y_train)
+
+```
+
+```{r Make Cor Plot}
+#corstats <- cor(df %>% select(-Y))
+#corrplot(corstats, method = "square")
+```
+
+```{r Linear Subests}
+reg.best <- regsubsets(Y~. , data = df, nvmax = 14, nbest = 1, method = "forward")  # leaps, regsubsets: Model selection by exhaustive search, forward or backward stepwise, or sequential replacement
 #The plot will show the Adjust R^2 when using the variables across the bottom
 plot(reg.best, scale = "adjr2", main = "Adjusted R^2")
 plot(reg.best, scale = "r2", main = "R^2")
 # In the "leaps" package, we can use scale=c("bic","Cp","adjr2","r2")
 plot(reg.best, scale = "bic", main = "BIC")
 plot(reg.best, scale = "Cp", main = "Cp")
-# summary(reg.best)
+#summary(reg.best)
 ```
 
-```{r}
-
-fit_lin <- lm(rank_final~. , data = stats_key)
-fit_lin.pred <- add_predictions(stats_key, fit_lin)
+```{r Linear Model}
+fit_lin <- lm(Y~. , data = df)
+fit_lin.pred <- add_predictions(df, fit_lin)
 fit_lin
 loadPkg("faraway")
 summary(fit_lin)
-#vif(fit_lin)
+vif(fit_lin)
+```
+
+```{r Graph Lin Model}
+ggplot(fit_lin.pred,aes(Y, pred))+geom_point(aes(Y, pred))+geom_line(aes(pred), colour="red", size=1)
+```
+
+```{r Ridge and Lasso}
+ridge.mod=glmnet(as.matrix(x_train),y_train,alpha=0,lambda=grid, thresh=1e-12)
+ridge.pred=predict(ridge.mod,s=4,newx=as.matrix(x_test))
+mean((ridge.pred-y_test)^2)
+```
+
+
+```{r}
+ridge.pred=predict(ridge.mod,s=1e10,newx=as.matrix(x_test))
+mean((ridge.pred-y_test)^2)
+```
+
+
+
+```{r}
+ridge.pred = predict(ridge.mod, s = 0, newx = as.matrix(x_test))
+mean((ridge.pred - y_test)^2)
+predict(ridge.mod, s = 0, type="coefficients")[1:20,]
+```
+
+
+There is a built-in cross-validation method with glmnet, which will select the minimal $\lambda$ value. The value found here is 0.752
+
+```{r}
+set.seed(1)
+cv.out=cv.glmnet(as.matrix(x_train),y_train,alpha=0)  # Fit ridge regression model on training data
+plot(cv.out)
+bestlam = cv.out$lambda.min  # Select lamda that minimizes training MSE
+bestlam
 ```
 
 ```{r}
-ggplot(fit_lin.pred,aes(rank_final, pred))+geom_point(aes(rank_final, pred))+geom_line(aes(pred), colour="red", size=1)
+ridge.pred=predict(ridge.mod,s=bestlam,newx=as.matrix(x_test))
+mean((ridge.pred-y_test)^2)
+out=glmnet(as.matrix(x_test),y_test,alpha=0)
+predict(out,type="coefficients",s=bestlam)[1:20,]
+
+lasso_coef = predict(out, type = "coefficients", s = bestlam) # Display coefficients using λ chosen by CV
+lasso_coef
+lasso_coef[lasso_coef!=0]
+```
+The first verticle dotted line is where the lowest MSE is. The second verticle dotted line is within one standard error. The labels of above the graph shows how many non-zero coefficients in the model.
+
+```{r KNN}
+training_x <- x_train_scaled
+test_x <- x_test_scaled
+training_y <- y_train
+test_y <- y_test
+
+
+#So now we will deploy our model 
+data_pred <- knn(train = training_x, test = test_x, cl=training_y, k=9)
+PREDCross <- CrossTable(test_y, data_pred, prop.chisq = FALSE)
+tbl <- (PREDCross$prop.tbl)
+acc_9 <- tbl[1:1] + tbl[2:2]
+
+
+```
+
+
+
+```{r}
+dfpca_scaled = data.frame(scale(df))
+dfpca_scaled <- na.omit(dfpca_scaled)
+
+pr.out = prcomp(dfpca_scaled , scale = TRUE)
+
+summary(pr.out)
+pr.out$rotation
+
+biplot(pr.out, scale = 0, sub='Centered Data')
 ```
